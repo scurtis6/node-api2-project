@@ -1,16 +1,16 @@
 const express = require('express');
 
-const apiRouter = require('./api.api-router');
+const apiRouter = require('./api/api-router');
 
 const server = express();
 
 server.use(express.json());
 
 // for URLs beginnning with /api
-server.use('api', apiRouter);
+server.use('/api', apiRouter);
 
 server.get('/', (req, res) => {
-    res.send(`<h2>The app is working<h2>`)
+    res.send(`<h2>The app is working<h2>`);
 });
 
 const port = 5000;
