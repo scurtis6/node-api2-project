@@ -3,6 +3,14 @@ const express = require('express');
 const Posts = require('./db');
 
 const router = express.Router();
+// find(): GET /
+// findById(): GET /:id
+// insert(): POST /
+// update(): PUT /:id
+// remove(): DELETE /:id
+// findCommentById(): GET /:id/comments
+// findPostComments(): 
+// insertComment(): POST /:id/comments
 
 // middleware
 
@@ -10,8 +18,8 @@ const router = express.Router();
 // GET	/api/posts	Returns an array of all the post objects contained in the database.
 router.get('/', (req, res) => {
     Posts.find()
-    .then(posts => {
-        res.status(200).json(posts)
+    .then(post => {
+        res.status(200).json(post)
     })
     .catch(err => {
         console.log(err)
@@ -21,9 +29,7 @@ router.get('/', (req, res) => {
 
 // GET	/api/posts/:id	Returns the post object with the specified id.
 router.get('/:id', (req, res) => {
-    const { id } = req.params;
-
-    Posts.findById(id)
+    Posts.findById(req.params.id)
     .then(post => {
         if (post) {
             res.status(200).json(post);
@@ -51,10 +57,48 @@ router.get('/:id/comments', (req, res) => {
         console.log(err)
         res.status(500).json({ error: 'The comments information could not be retrieved.' })
     })
-})
+});
 
 // POST	/api/posts	Creates a post using the information sent inside the request body.
+// fractor the post this way
+router.post('/', (req, res) => {
+    const { title, contents } = req.body
+    if (!title || !contents) {
+        res.status(400).json({ error: 'Please provide title and contents for the post.' })
+    } else {
+        Posts.insert({title, contents})
+        .then(post => {
+            res.status(201).json(post)
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({ error: 'There was an error while saving the post to the database.' })
+        })
+    }
+}); 
+
 // POST	/api/posts/:id/comments	Creates a comment for the post with the specified id using information sent inside of the request body.
+router.post('/:id/comments', (req, res) => {
+    const{ id } = req.params;
+
+    if (!req.body.text) {
+      res.status(400).json({errorMessage: "Please provide text for the comment."})
+    } else {
+      Posts.insertComment({post_id: id, ...req.body})
+      .then(comment => {
+          if(comment === 0) {
+              res.status(404).json({errorMessage: "could not find specified post"})
+          } else {
+              res.status(201).json({id: comment.id, post_id: id, ...req.body})
+          }
+      })
+      .catch( err => {
+          console.log(err)
+          res.status(500).json({errorMessage: "could not add the comment"})
+      })
+    }
+  })
+
 // DELETE	/api/posts/:id	Removes the post with the specified id and returns the deleted post object. You may need to make additional calls to the database in order to satisfy this requirement.
 // PUT	/api/posts/:id	Updates the post with the specified id using data from the request body. Returns the modified document, NOT the original.
 
