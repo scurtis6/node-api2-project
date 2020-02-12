@@ -117,5 +117,27 @@ router.delete('/:id', (req, res) => {
 })
 
 // PUT	/api/posts/:id	Updates the post with the specified id using data from the request body. Returns the modified document, NOT the original.
+router.put('/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, contents } = req.body
+    if (!title || !contents) {
+        res.status(404).json({ errorMessage: 'Please Provide title and contents for the post.' })
+    }
+    Posts.update(id, {title, contents})
+    .then(updated => {
+        if (updated) {
+            Posts.findById(id)
+            .then(post => {
+                res.status(200).json(post)
+            })
+        } else {
+            res.status(404).json({ message: 'The post with the specified ID does not exist.' })
+        }
+    })
+    .catch(err => {
+        console.log(err)
+        res.status(500).json({ error: 'The post information could not be motified.' })
+    })
+})
 
 module.exports = router;
